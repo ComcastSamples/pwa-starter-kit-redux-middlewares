@@ -47,12 +47,31 @@ export const SharedStyles = css`
     display: block;
     width: 64px;
     height: 64px;
-    margin: 0 auto;
+    margin: 0 16px 16px 0;
+    float: left;
     text-align: center;
     border-radius: 50%;
     background: var(--app-primary-color);
     color: var(--app-light-text-color);
     font-size: 30px;
     line-height: 64px;
+  }
+
+  .fact > p {
+    margin: 0 0 0 80px;
+    padding: 8px;
+    min-height: 54px;
+    border: 1px solid var(--app-primary-color);
+    background-color: var(--app-section-even-color);
+  }
+  .fact > p.loading {
+    color: var(--app-light-text-color);
+    font-weight: bold;
+    background-color: var(--app-secondary-color);
+  }
+  .fact > p.failure {
+    color: var(--app-light-text-color);
+    font-weight: bold;
+    background-color: var(--app-primary-color);
   }
 `;
