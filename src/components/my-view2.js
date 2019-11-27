@@ -16,7 +16,7 @@ import { connect } from 'pwa-helpers/connect-mixin.js';
 import { store } from '../store.js';
 
 // These are the actions needed by this element.
-import { incrementAndFetchFact, decrementAndFetchFact } from '../actions/counter.js';
+import { increment, decrement } from '../actions/counter.js';
 
 // We are lazy loading its reducer.
 import counter from '../reducers/counter.js';
@@ -79,11 +79,11 @@ class MyView2 extends connect(store)(PageViewElement) {
   }
 
   _counterIncremented() {
-    store.dispatch(incrementAndFetchFact());
+    store.dispatch(increment());
   }
 
   _counterDecremented() {
-    store.dispatch(decrementAndFetchFact());
+    store.dispatch(decrement());
   }
 
   // This is called every time something is updated in the store.

@@ -8,6 +8,11 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 */
 
+/* Saga code would typically be in a "sagas" folder but putting it here to show how the code changes */
+import { put, call, takeLatest, select } from 'redux-saga/effects';
+import { sagaMiddleware } from '../store';
+// end Saga intro code
+
 export const INCREMENT = 'INCREMENT';
 export const DECREMENT = 'DECREMENT';
 export const FETCHING_NUMBER = 'FETCHING_NUMBER';
@@ -20,25 +25,9 @@ export const increment = () => {
   };
 };
 
-export const incrementAndFetchFact = () => {
-  return (dispatch, getState) => {
-    const { counter } = getState();
-    dispatch(fetchNumber(counter.value+1));
-    dispatch(increment());
-  };
-};
-
 export const decrement = () => {
   return {
     type: DECREMENT
-  };
-};
-
-export const decrementAndFetchFact = () => {
-  return (dispatch, getState) => {
-    const { counter } = getState();
-    dispatch(fetchNumber(counter.value-1));
-    dispatch(decrement());
   };
 };
 
@@ -48,16 +37,31 @@ export const fetchingNumber = () => {
   }
 };
 
-export const fetchNumber = (number) => {
-  return (dispatch) => {
-    dispatch(fetchingNumber()),
-    fetch(`http://numbersapi.com/${number}?json`).then((response) => {
-      response.json().then((data) => {
-        dispatch(fetchNumberSuccess(data))
-      }).catch((error) => dispatch(fetchNumberFailure(error)))
-    }).catch((error) => dispatch(fetchNumberFailure(error)))
-  };
-};
+// Begin Sagas
+const getCounter = state => state.counter;
+
+function* fetchNumber() {
+  try {
+    yield put(fetchingNumber());
+    let counter = yield select(getCounter);
+    const number = counter.value;
+    const data = yield call(() => {
+      return fetch(`http://numbersapi.com/${number}?json`).then((response) => {
+        return response.json()
+      });
+    });
+    yield put(fetchNumberSuccess(data));
+  } catch (error) {
+    yield put(fetchNumberFailure(error));
+  }
+}
+
+function* watchIncrementDecrement() {
+  yield takeLatest([INCREMENT, DECREMENT], fetchNumber);
+}
+
+sagaMiddleware.run(watchIncrementDecrement);
+// End Sagas
 
 export const fetchNumberSuccess = (data) => {
   return {
