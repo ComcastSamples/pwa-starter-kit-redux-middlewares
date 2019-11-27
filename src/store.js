@@ -15,7 +15,7 @@ import {
   combineReducers
 } from 'redux';
 import thunk from 'redux-thunk';
-import createSagaMiddleware from 'redux-saga';
+import { createEpicMiddleware } from 'redux-observable';
 import { lazyReducerEnhancer } from 'pwa-helpers/lazy-reducer-enhancer.js';
 
 import app from './reducers/app.js';
@@ -24,8 +24,8 @@ import app from './reducers/app.js';
 // See https://github.com/zalmoxisus/redux-devtools-extension for more information.
 const devCompose = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
-// create the saga middleware
-export const sagaMiddleware = createSagaMiddleware()
+// create the epic middleware
+export const epicMiddleware = createEpicMiddleware();
 
 // Initializes the Redux store with a lazyReducerEnhancer (so that you can
 // lazily add reducers after the store has been created) and redux-thunk (so
@@ -37,7 +37,7 @@ export const store = createStore(
   devCompose(
     lazyReducerEnhancer(combineReducers),
     applyMiddleware(thunk),
-    applyMiddleware(sagaMiddleware))
+    applyMiddleware(epicMiddleware))
 );
 
 // Initially loaded reducers.

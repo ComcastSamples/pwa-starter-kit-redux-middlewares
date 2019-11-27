@@ -8,10 +8,13 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 */
 
-/* Saga code would typically be in a "sagas" folder but putting it here to show how the code changes */
-import { put, call, takeLatest, select } from 'redux-saga/effects';
-import { sagaMiddleware } from '../store';
-// end Saga intro code
+/* Epic code would typically be in an "epics" folder but putting it here to show how the code changes */
+import { combineEpics, ofType } from 'redux-observable';
+import { withLatestFrom, switchMap, map, catchError } from 'rxjs/operators';
+import { ajax } from 'rxjs/ajax';
+import { of, concat } from 'rxjs';
+import { epicMiddleware } from '../store';
+// end Epic intro code
 
 export const INCREMENT = 'INCREMENT';
 export const DECREMENT = 'DECREMENT';
@@ -37,30 +40,29 @@ export const fetchingNumber = () => {
   }
 };
 
-// Begin Sagas
-const getCounter = state => state.counter;
-
-function* fetchNumber() {
-  try {
-    yield put(fetchingNumber());
-    let counter = yield select(getCounter);
+// Begin Epics
+const fetchNumber = (action$, state$) => action$.pipe(
+  ofType(INCREMENT, DECREMENT),
+  withLatestFrom(state$),
+  switchMap(([, state]) => {
+    const counter = state.counter;
     const number = counter.value;
-    const data = yield call(() => {
-      return fetch(`http://numbersapi.com/${number}?json`).then((response) => {
-        return response.json()
-      });
-    });
-    yield put(fetchNumberSuccess(data));
-  } catch (error) {
-    yield put(fetchNumberFailure(error));
-  }
-}
 
-function* watchIncrementDecrement() {
-  yield takeLatest([INCREMENT, DECREMENT], fetchNumber);
-}
+    return concat(
+      of(fetchingNumber()),
+      ajax.getJSON(`http://numbersapi.com/${number}?json`).pipe(
+        map(response => fetchNumberSuccess(response)),
+        catchError(error => of(fetchNumberFailure(error)))
+      )
+    );
+  })
+);
 
-sagaMiddleware.run(watchIncrementDecrement);
+export const rootEpic = combineEpics(
+  fetchNumber
+);
+
+epicMiddleware.run(rootEpic);
 // End Sagas
 
 export const fetchNumberSuccess = (data) => {
